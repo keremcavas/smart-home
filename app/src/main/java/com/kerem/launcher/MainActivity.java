@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.net.Uri;
+import android.os.Handler;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomSheetBehavior;
@@ -49,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
         setConstants();
         setClock();
         setAppDrawer();
+        home.syncFromFile();
     }
 
     private void setConstants() {
@@ -242,37 +244,46 @@ public class MainActivity extends AppCompatActivity {
         appIconView.setMaxHeight(150);
         appIconView.setPadding(25, 25, 25, 25);
         appIconView.setY(200);
-        appIconView.animate().setStartDelay(10*i).setDuration(30).y(-10*i);
-        appIconView.animate().setStartDelay(10*i + 30).y(0);
+        appIconView.animate().setStartDelay(30*i).setDuration(50).y(-10*i);
+        appIconView.animate().setStartDelay(30*i + 60).y(0);
         appIconView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 animateHome(i);
-                startActivity(
-                        getPackageManager().getLaunchIntentForPackage(appInfo.getPackageName()));
-                home.onAppClicked(appID, getHour(), false);
+                Runnable r = new Runnable() {
+                    @Override
+                    public void run() {
+                        startActivity(
+                                getPackageManager().getLaunchIntentForPackage(appInfo.getPackageName()));
+                        home.onAppClicked(appID, getHour(), false);
+                        finish();
+                    }
+                };
+                Handler h = new Handler();
+                h.postDelayed(r, 150);
+
             }
         });
         return appIconView;
     }
 
     private void animateHome(int i) {
-        int end  = homeListLayout.getChildCount();
+        int end  = homeListLayout.getChildCount() - 1;
         int start = 0;
         int delay = 0;
         while (end != start) {
             if (start != i) {
-                homeListLayout.getChildAt(start).animate().setStartDelay(delay).y(200);
+                homeListLayout.getChildAt(start).animate().setStartDelay(delay).setDuration(40).y(200);
                 start++;
-                delay += 10;
+                delay += 20;
             }
             if (end != i) {
-                homeListLayout.getChildAt(start).animate().setStartDelay(delay).y(200);
+                homeListLayout.getChildAt(end).animate().setStartDelay(delay).setDuration(40).y(200);
                 end--;
-                delay += 10;
+                delay += 20;
             }
         }
-        homeListLayout.getChildAt(i).animate().setStartDelay(delay).y(-200);
+        homeListLayout.getChildAt(i).animate().setStartDelay(delay).setDuration(40).y(-200);
     }
 
     private int getHour() {
